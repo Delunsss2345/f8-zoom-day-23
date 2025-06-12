@@ -9,8 +9,8 @@ const todoMain = document.querySelector('.task-grid') ;
 const tabList = document.querySelectorAll('.tab-list .tab-button') ;
 const search = document.querySelector('.search-input') ; 
 let todoTasks = JSON.parse(localStorage.getItem('todos')) || [] ; 
-
 const toggleButton = [addBtn, closeBtn, cancelBtn];
+
 toggleButton.forEach(btn => {
     btn.onclick = () => {
         modalId.classList.toggle('show');
@@ -25,20 +25,27 @@ toggleButton.forEach(btn => {
     };
 });
 
+
+
+//Hàm tối ưu , để lọc và render filter theo đúng thực tế
+const filterActive = (index) => {
+    if (index === 0) {
+        renderTask(todoTasks); 
+    } else if (index === 1) {
+        const activeTasks = todoTasks.filter(todo => !todo.isCompleted);
+        renderTask(activeTasks);
+    } else if (index === 2) {
+        const completedTasks = todoTasks.filter(todo => todo.isCompleted);
+        renderTask(completedTasks); 
+    }
+}
+
+
 tabList.forEach((tab , index)=> {
     tab.onclick = () => {
         tabList.forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-        if(index === 0) {
-            renderTask(todoTasks) ; 
-        } else if(index === 1) {
-            const activeTask = todoTasks.filter(todo => !todo.isCompleted) ; 
-            renderTask(activeTask) ; 
-        }
-        else if(index === 2) {
-            const completedTask = todoTasks.filter(todo => todo.isCompleted) ; 
-            renderTask(completedTask) ; 
-        }
+        filterActive(index) ; 
     }
 })
 
@@ -110,7 +117,10 @@ const completeTask = (id) => {
     const todo = todoTasks.find((todo , index) => index === id) ; 
     todo.isCompleted = !todo.isCompleted ;
     todoTasks[id] = todo ;
-    taskRender(todoTasks) ; 
+    localStorage.setItem("todos" , JSON.stringify(todoTasks)) ;
+
+    const activeTab = [...tabList].findIndex(tab => tab.classList.contains('active'));
+    filterActive(activeTab) ; 
 };
 
 //Hàm lắng nghe sự kiện ở thẻ to nhất
@@ -193,7 +203,7 @@ function renderTask(todos) {
     todos.map((task , index) => {
         const taskCard = document.createElement('div');
         taskCard.classList.add('task-card');
-        taskCard.dataset.taskId = index + 1 ; 
+        taskCard.dataset.taskId =  todoTasks.indexOf(task) + 1; //fix bug idx không thật nếu xài mảng khác
         taskCard.classList.add(task.cardColor || 'blue');
             
         if (task.isCompleted) {
@@ -298,4 +308,3 @@ form.onsubmit = function (e) {
 };
 
 renderTask(todoTasks) ; 
-
